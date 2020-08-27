@@ -8,17 +8,17 @@ use App\Http\Resources;
 use Illuminate\Http\Request;
 use App\Exceptions\InvalidInputException;
 
-use Resources\CleanerResource;
-use Resources\CleanerCollection;
+//use Resources\CleanerResource;
+//use Resources\CleanerCollection;
 
 use Resources\BookingResource;
 use Resources\BookingCollection;
 
-use Resources\CustomerResource;
-use Resources\CustomerCollection;
+//use Resources\CustomerResource;
+//use Resources\CustomerCollection;
 
 use App\Models\Cleaner;
-use App\Models\Customer;
+//use App\Models\Customer;
 use App\Models\Booking;
 
 /*
@@ -80,7 +80,7 @@ class BookingController extends Controller
 //returns data array of: booking, error, message
     
     
-    public function book(Request $request)
+    public function store(Request $request)
     {
         try
         {

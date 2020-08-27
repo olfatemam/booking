@@ -22,3 +22,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::apiResource('/customers','CustomerController');
 Route::apiResource('/cleaners','CleanerController');
 Route::apiResource('/bookings','BookingController');
+
+
+Route::get('availability', 'BookingController@availability');
