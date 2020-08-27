@@ -81,8 +81,8 @@ class Booking extends Model
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
         
-        $query = "SELECT 'start', DATE_ADD('start', INTERVAL 'duration' HOUR ) AS 'end'  from bookings " . 
-                " where 'cleaner_id' = " . $this->cleaner->id; 
+        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR ) AS end  from bookings " . 
+                " where cleaner_id = " . $this->cleaner->id; 
       
         $query .= $this->construct_overlap($start_date, $end_date);
         
@@ -107,8 +107,8 @@ class Booking extends Model
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
         
-        $query = "SELECT 'start', DATE_ADD('start', INTERVAL 'duration' HOUR) AS 'end' from bookings" . 
-                " where 'customer_id' = " . $this->customer->id; 
+        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end from bookings" . 
+                " where customer_id = " . $this->customer->id; 
       
         $query .= $this->construct_overlap($start_date, $end_date);
 
@@ -122,22 +122,22 @@ class Booking extends Model
    
    private function construct_overlap($start_date, $end_date)
    {
-       return " and 'end' >'". $start_date ."' and  'start' <'" .$end_date ."'";
+       //return " and 'end' >'". $start_date ."' and  'start' <'" .$end_date ."'";
 
 //(!('end'<=$start_date || 'start'>=$end_date))
 //(('end'>$start_date && 'start'<$end_date))
-       
-//       return  " HAVING (" .
-//                
-//                " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
-//
-//                " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
-//
-//                " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
-//
-//                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )";
+       $end = 'DATE_ADD(start, INTERVAL duration HOUR) ';
+       return  " and (" .
+                
+                " ( start <= '". $end_date ."' AND " . $end ." >= '". $start_date . "' )" .
 
-   }
+                " OR (start >= '". $end_date . "' AND start <= '" . $start_date . "' AND " . $end ." <= '" . $start_date . "' )" .
+
+                " OR (" . $end ." <= '" . $start_date . "' AND " . $end ." >= '" .  $end_date . "' AND start <= '" . $end_date . "' )" .
+
+                " OR (start >= '" . $end_date ."' AND start <= '"  . $start_date . "' ) )";
+    }
+    
     public function customer()
     {
         return $this->belongsTo('App\Models\Customer');
