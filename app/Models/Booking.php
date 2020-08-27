@@ -6,9 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\InvalidInputException;
 class Booking extends Model
 {
-    public function __constructor($customer_id, $cleaner_id, $start, $duration)
+
+    protected $fillable = [
+        'customer_id','cleaner_id', 'start', 'duration','status'
+        ];
+
+    public function __constructor($customer_id, $cleaner_id, $start, $duration, $status="booked")
     {
-        $this->initialize($customer_id, $cleaner_id, $start, $duration);    
+        $this->initialize($customer_id, $cleaner_id, $start, $duration, $status);
+        
     }
     
     
@@ -58,13 +64,14 @@ class Booking extends Model
         $this->store();
     }
     
-    private function initialize($customer_id, $cleaner_id, $start, $duration)
+    private function initialize($customer_id, $cleaner_id, $start, $duration, $status)
     {
-        
         $this->customer_id  = $customer_id;
         $this->cleaner_id   = $cleaner_id;
         $this->start        = $start;//"YYYY-MM-DD hh:mm:ss" UTC formatted with timezone
-        $this->duration        = $duration;
+        $this->duration     = $duration;
+        $this->status       = $status;
+        
         return;
     }    
 

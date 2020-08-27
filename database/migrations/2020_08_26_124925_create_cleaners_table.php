@@ -16,6 +16,8 @@ class CreateCleanersTable extends Migration
         Schema::create('cleaners', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
+            $table->string('description')->nullable();
+            $table->string('rating')->default(5);
             $table->timestamps();
         });
     }
