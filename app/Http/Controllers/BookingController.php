@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Booking;
-use App\Http\Resources;
-
 use Illuminate\Http\Request;
+
 use App\Exceptions\InvalidInputException;
 
 //use Resources\CleanerResource;
 //use Resources\CleanerCollection;
 
-use Resources\BookingResource;
-use Resources\BookingCollection;
+use App\Http\Resources\BookingResource;
+use App\Http\Resources\BookingCollection;
 
 //use Resources\CustomerResource;
 //use Resources\CustomerCollection;
@@ -82,9 +80,12 @@ class BookingController extends Controller
     
     public function store(Request $request)
     {
+        
         try
         {
-            $booking = new Booking($request->customer_id, $request->start, $request->duration);//
+            //Log::info()
+            $booking = new Booking();
+            $booking->initialize($request->customer_id, $request->cleaner_id, $request->start, $request->duration);//
             $booking->execute();
             //olfat: should do some admin work here like sending sms, email, etc... to the worker and for admin for followup
             return response(['data' => ["error"=>0, "message"=>"success", "booking"=>new BookingResource($booking)]], Response::HTTP_CREATED);
@@ -95,6 +96,7 @@ class BookingController extends Controller
 
             return response(['data' => ['booking'=>null, "error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
         }
+        
     }
     
 //input: json object request of customer_id, start, duration, existing booking object
@@ -107,7 +109,8 @@ class BookingController extends Controller
             DB::beginTransaction();
             
 
-            $newbooking = new Booking($booking->customer_id, $booking->start, $booking->duration, $booking->status);//
+            $newbooking = new Booking();//
+            $newbooking->initialize($request->customer_id, $request->cleaner_id, $request->start, $request->duration);//
             
             $booking->delete();
 

@@ -1,9 +1,12 @@
 <?php
 
 namespace App\Models;
-
+use DateTime;
+use DateInterval;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\InvalidInputException;
+
 class Booking extends Model
 {
     //start format: "YYYY-MM-DD hh:mm:ss"
@@ -11,19 +14,11 @@ class Booking extends Model
         'customer_id','cleaner_id', 'start', 'duration','status'
         ];
 
-    public function __constructor($customer_id, $cleaner_id, $start, $duration, $status="booked")
-    {
-        $this->initialize($customer_id, $cleaner_id, $start, $duration, $status);
-        
-    }
     
     
     private function validate()
     {
-        
-        $start_date = new DateTime($this->start, "YYYY-MM-DD hh:mm:ss");
-
-        $day = $start_date->format('D');
+        $day = $this->start->format('D');
         
         if( strcasecmp($day, "Fri") === 0 )
         {
@@ -36,7 +31,7 @@ class Booking extends Model
         }
         
         
-        $hour = $start_date->format('H');
+        $hour = $this->start->format('H');
 
         if( $hour<=8 || $hour >=22)
         {
@@ -64,11 +59,11 @@ class Booking extends Model
         $this->store();
     }
     
-    private function initialize($customer_id, $cleaner_id, $start, $duration, $status)
+    public function initialize($customer_id, $cleaner_id, $start, $duration, $status="booked")
     {
         $this->customer_id  = $customer_id;
         $this->cleaner_id   = $cleaner_id;
-        $this->start        = $start;//"YYYY-MM-DD hh:mm:ss" UTC formatted with timezone
+        $this->start        = new DateTime($start);//"YYYY-MM-DD hh:mm:ss" UTC formatted with timezone
         $this->duration     = $duration;
         $this->status       = $status;
         
@@ -78,10 +73,12 @@ class Booking extends Model
     
    public function get_cleaner_overlapping_count()
    {
-        $start_date = new DateTime($this->start, "YYYY-MM-DD hh:mm:ss"); 
+        $start_date = $this->start;//: "YYYY-MM-DD hh:mm:ss" 
         $end_date    = clone $start_date;
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
-
+        $start_date = $start_date->format('Y-m-d H:i:s');
+        $end_date = $end_date->format('Y-m-d H:i:s');
+        
         $count = Booking::where('cleaner_id', $this->cleaner->id)
                         //reduce to this more elegant short formula: (!($b<=$c || $a>=$d)) where input (start, end)=>(a, b) and record (start, end)=>(c,d)
                         ->havingRaw(
@@ -95,20 +92,26 @@ class Booking extends Model
         return $count;
    }
     
+   
    public function get_customer_overlapping_count()
    {
-        $start_date = new DateTime($this->start, "YYYY-MM-DD hh:mm:ss"); //RFC7231
+        $start_date = $this->start;//: "YYYY-MM-DD hh:mm:ss" 
         $end_date    = clone $start_date;
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
+        $start_date = $start_date->format('Y-m-d H:i:s');
+        $end_date = $end_date->format('Y-m-d H:i:s');
 
-        $count = Booking::where('customer_id', $this->customer->id)
-                        ->where('cleaner_id', "!=", $this->cleaner->id)
-                        //olfat: reduce to this more elegant short formula: (!($b<=$c || $a>=$d)) where input (start, end)=>(a, b) and record (start, end)=>(c,d)
-                        ->havingRaw(
-                                " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
+        
+        $raw_qry =" ( ' start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
                                 " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
                                 " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
-                                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )"
+                                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )";
+        
+        
+        $count = Booking::where('customer_id', $this->customer->id)
+                        ->where('cleaner_id', "!=", $this->cleaner->id)
+                        ->havingRaw(
+                                $raw_qry                        
                             )
                 ->count();
                 
