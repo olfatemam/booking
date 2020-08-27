@@ -32,10 +32,11 @@ expecting a booking date as input
 class BookingController extends Controller
 {
 
- public function index()
+    public function index()
     {
         return BookingCollection::collection(Booking::paginate(5));
     }
+    
     public function availability(Request $request)
     {
         try
