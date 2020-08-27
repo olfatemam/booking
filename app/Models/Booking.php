@@ -81,18 +81,21 @@ class Booking extends Model
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
         
-        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end FROM bookings " . 
-                " where cleaner_id = " . $this->cleaner->id. " and " ; 
+        $query = "SELECT 'start', DATE_ADD('start', INTERVAL 'duration' HOUR ) AS 'end'  from bookings " . 
+                " where 'cleaner_id' = " . $this->cleaner->id; 
       
         $query .= $this->construct_overlap($start_date, $end_date);
         
         Log::info("**********************************************");
         Log::info("get_cleaner_overlapping_count");
         Log::info($query);
+        $rows = DB::select($query);
+        Log::info(print_r($rows, true));
+        return count($rows);
         
-        return DB::table('bookings')
-                ->select( DB::raw($query))
-                ->count();
+//        return DB::table('bookings')
+//                ->select( DB::raw($query))
+//                ->get()->count();
    }
     
    
@@ -103,36 +106,36 @@ class Booking extends Model
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
-
         
-        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end FROM bookings " . 
-                " where customer_id = " . $this->customer->id. " and " ; 
+        $query = "SELECT 'start', DATE_ADD('start', INTERVAL 'duration' HOUR) AS 'end' from bookings" . 
+                " where 'customer_id' = " . $this->customer->id; 
       
         $query .= $this->construct_overlap($start_date, $end_date);
 
         Log::info("**********************************************");
         Log::info("get_customer_overlapping_count");
-        
         Log::info($query);
-        
-        return DB::table('bookings')
-                ->select( DB::raw($query))
-                ->count();
+        $rows = DB::select($query);
+        Log::info(print_r($rows, true));
+        return count($rows);
    }
    
    private function construct_overlap($start_date, $end_date)
    {
-    
-    //(!('start'<=$start_date || 'end'>=$end_date))
-    return  " HAVING (" .
-                
-                " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
+       return " and 'end' >'". $start_date ."' and  'start' <'" .$end_date ."'";
 
-                " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
-
-                " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
-
-                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )";
+//(!('end'<=$start_date || 'start'>=$end_date))
+//(('end'>$start_date && 'start'<$end_date))
+       
+//       return  " HAVING (" .
+//                
+//                " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
+//
+//                " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
+//
+//                " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
+//
+//                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )";
 
    }
     public function customer()
