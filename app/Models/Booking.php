@@ -7,12 +7,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\InvalidInputException;
 use Illuminate\Support\Facades\DB;
-
 use Symfony\Component\HttpFoundation\Response;
 
 class Booking extends Model
 {
-    //start format: "Y-m-d H:i:s"
+    //start format: "YYYY-MM-DD hh:mm:ss"
     protected $fillable = [
         'customer_id','cleaner_id', 'start', 'duration','status'
         ];
@@ -66,7 +65,7 @@ class Booking extends Model
     {
         $this->customer_id  = $customer_id;
         $this->cleaner_id   = $cleaner_id;
-        $this->start        = new DateTime($start);//"Y-m-d H:i:s" UTC formatted with timezone
+        $this->start        = new DateTime($start);//"YYYY-MM-DD hh:mm:ss" UTC formatted with timezone
         $this->duration     = $duration;
         $this->status       = $status;
         
@@ -76,7 +75,7 @@ class Booking extends Model
     
    public function get_cleaner_overlapping_count()
    {
-        $start_date = $this->start;//: "Y-m-d H:i:s" 
+        $start_date = $this->start;//: "YYYY-MM-DD hh:mm:ss" 
         $end_date    = clone $start_date;
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
         $start_date = $start_date->format('Y-m-d H:i:s');
@@ -87,6 +86,10 @@ class Booking extends Model
       
         $query .= $this->construct_overlap($start_date, $end_date);
         
+        Log::info("**********************************************");
+        Log::info("get_cleaner_overlapping_count");
+        Log::info($query);
+        
         return DB::table('bookings')
                 ->select( DB::raw($query))
                 ->count();
@@ -95,7 +98,7 @@ class Booking extends Model
    
    public function get_customer_overlapping_count()
    {
-        $start_date = $this->start;//: "Y-m-d H:i:s" 
+        $start_date = $this->start;//: "YYYY-MM-DD hh:mm:ss" 
         $end_date    = clone $start_date;
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
         $start_date = $start_date->format('Y-m-d H:i:s');
@@ -107,6 +110,11 @@ class Booking extends Model
       
         $query .= $this->construct_overlap($start_date, $end_date);
 
+        Log::info("**********************************************");
+        Log::info("get_customer_overlapping_count");
+        
+        Log::info($query);
+        
         return DB::table('bookings')
                 ->select( DB::raw($query))
                 ->count();
@@ -114,6 +122,8 @@ class Booking extends Model
    
    private function construct_overlap($start_date, $end_date)
    {
+    
+    //(!('start'<=$start_date || 'end'>=$end_date))
     return  " HAVING (" .
                 
                 " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .

@@ -22,7 +22,7 @@ class BookingResource extends JsonResource
             
             //start format "Y-m-d H:i:s" utc;
         
-            'start' => $this->start->format('Y-m-d H:i:s'),
+            'start' => $this->start,//->format('Y-m-d H:i:s'),
             'duration' => $this->duration,
             'status' => $this->status,
             'created_at' => $this->created_at,
