@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 use App\Exceptions\InvalidInputException;
 
@@ -63,13 +64,14 @@ class BookingController extends Controller
                 $available_array[]=['cleaner'=>new Resources\CleanerResource($cleaner), 'occupied_array'=>$bookings];
             }
             
-            return response(['data' => ["available_array"=>$available_array, "error"=>0, "message"=>"success"]], Response::HTTP_CREATED);
+            return response()->json(['data' => ["available_array"=>$available_array, "error"=>0, "message"=>"success"]], Response::HTTP_CREATED);
         }
-        catch(Exception $e)
+        catch(InvalidInputException $e)
         {
-            $html_code=($e instanceof InvalidInputException)?$e->getHtmlCode():Response::HTTP_PRECONDITION_FAILED;
+            //$html_code=($e instanceof InvalidInputException)?$e->getHtmlCode():Response::HTTP_PRECONDITION_FAILED;
+            $html_code=Response::HTTP_PRECONDITION_FAILED;
             
-            return response(['data' => ['available_array'=>null, "error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
+            return response()->json(['data' => ['available_array'=>null, "error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
         }
     }
     
@@ -80,7 +82,6 @@ class BookingController extends Controller
     
     public function store(Request $request)
     {
-        
         try
         {
             //Log::info()
@@ -88,15 +89,14 @@ class BookingController extends Controller
             $booking->initialize($request->customer_id, $request->cleaner_id, $request->start, $request->duration);//
             $booking->execute();
             //olfat: should do some admin work here like sending sms, email, etc... to the worker and for admin for followup
-            return response(['data' => ["error"=>0, "message"=>"success", "booking"=>new BookingResource($booking)]], Response::HTTP_CREATED);
+            return response()->json(['data' => ["error"=>0, "message"=>"success", "booking"=>new BookingResource($booking)]], Response::HTTP_CREATED);
         }
-        catch(Exception $e)
+        catch(InvalidInputException $e)
         {
-            $html_code=($e instanceof InvalidInputException)?$e->getHtmlCode():Response::HTTP_PRECONDITION_FAILED;
-
-            return response(['data' => ['booking'=>null, "error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
+            //$html_code=($e instanceof InvalidInputException)?$e->getHtmlCode():Response::HTTP_PRECONDITION_FAILED;
+            $html_code=Response::HTTP_PRECONDITION_FAILED;
+            return response()->json(['data' => ['booking'=>null, "error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
         }
-        
     }
     
 //input: json object request of customer_id, start, duration, existing booking object
@@ -120,14 +120,16 @@ class BookingController extends Controller
             
             DB::commit();
 
-            return response(['data' => new BookingResource($newbooking)], Response::HTTP_CREATED);//olfat: could not find a code for resource updated,using this for now
+            return response()->json(['data' => new BookingResource($newbooking)], Response::HTTP_CREATED);//olfat: could not find a code for resource updated,using this for now
         }
-        catch(Exception $e)
+        catch(InvalidInputException $e)
         {
             DB::rollBack();
-            $html_code=($e instanceof InvalidInputException)?$e->getHtmlCode():Response::HTTP_PRECONDITION_FAILED;
             
-            return response(['data' => ["error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
+            //$html_code=($e instanceof InvalidInputException)?$e->getHtmlCode():Response::HTTP_PRECONDITION_FAILED;
+            $html_code=Response::HTTP_PRECONDITION_FAILED;
+            
+            return response()->json(['data' => ["error"=>$e->getCode(), "message"=>$e->getMessage()]], $html_code );
         }
     }
 }

@@ -13,17 +13,20 @@ namespace App\Exceptions;
  *
  * @author Olfat.Emam
  */
+use Exception;
+
 class InvalidInputException extends Exception{
     //put custom codes list  here
-    private $html_code;
+    //private $html_code; later
+//    
+//    public function __constructor($message, $code)
+//    {
+//        //$this->$html_code=$html_code;
+//    }
     
-    public function __constructor($message, $code, $html_code)
-    {
-        $this->$html_code=$html_code;
-    }
-    public function getHtmlCode()
-    {
-        return $this->$html_code;
-    }
-    
+//    public function getHtmlCode()
+//    {
+//        return $this->$html_code;
+//    }
+//    
 }

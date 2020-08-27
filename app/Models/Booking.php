@@ -6,6 +6,9 @@ use DateInterval;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\InvalidInputException;
+use Illuminate\Support\Facades\DB;
+
+use Symfony\Component\HttpFoundation\Response;
 
 class Booking extends Model
 {
@@ -22,12 +25,12 @@ class Booking extends Model
         
         if( strcasecmp($day, "Fri") === 0 )
         {
-            throw InvalidInputException("Friday is a holiday for cleaners.", Response::HTTP_PRECONDITION_FAILED, Response::HTTP_PRECONDITION_FAILED );
+            throw new InvalidInputException("Friday is a holiday for cleaners.", Response::HTTP_PRECONDITION_FAILED);
         }
         
         if( 2 != $this->duration && 4 != $this->duration )
         {
-            throw InvalidInputException("A booking can have 2 or 4 hours duration only", Response::HTTP_PRECONDITION_FAILED, Response::HTTP_PRECONDITION_FAILED );
+            throw new InvalidInputException("A booking can have 2 or 4 hours duration only", Response::HTTP_PRECONDITION_FAILED);
         }
         
         
@@ -35,28 +38,28 @@ class Booking extends Model
 
         if( $hour<=8 || $hour >=22)
         {
-            throw InvalidInputException("Cleaners working hours are between 08:00 to 22:00.", Response::HTTP_PRECONDITION_FAILED, Response::HTTP_PRECONDITION_FAILED );
+            throw new InvalidInputException("Cleaners working hours are between 08:00 to 22:00.", Response::HTTP_PRECONDITION_FAILED);
         }
         
         $overlapping_count = $this->get_cleaner_overlapping_count();
         
         if($overlapping_count>0)
         {
-            throw InvalidInputException("Cleaner is busy during the requested time range", Response::HTTP_PRECONDITION_FAILED, Response::HTTP_PRECONDITION_FAILED );
+            throw new InvalidInputException("Cleaner is busy during the requested time range", Response::HTTP_PRECONDITION_FAILED);
         }
         
         $overlapping_count = $this->get_customer_overlapping_count();
         
         if($overlapping_count>0)
         {
-            throw InvalidInputException("Other cleaner is workig for this customer during the requested time, Cleaners that work different companies cannot work together. ", Response::HTTP_PRECONDITION_FAILED, Response::HTTP_PRECONDITION_FAILED );
+            throw new InvalidInputException("Other cleaner is workig for this customer during the requested time, Cleaners that work different companies cannot work together. ", Response::HTTP_PRECONDITION_FAILED);
         }
     }
     
     public function execute()
     {
         $this->validate();
-        $this->store();
+        $this->save();
     }
     
     public function initialize($customer_id, $cleaner_id, $start, $duration, $status="booked")
@@ -79,17 +82,14 @@ class Booking extends Model
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
         
-        $count = Booking::where('cleaner_id', $this->cleaner->id)
-                        //reduce to this more elegant short formula: (!($b<=$c || $a>=$d)) where input (start, end)=>(a, b) and record (start, end)=>(c,d)
-                        ->havingRaw(
-                                " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
-                                " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
-                                " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
-                                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )"
-                            )
+        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end FROM bookings " . 
+                " where cleaner_id = " . $this->cleaner->id. " and " ; 
+      
+        $query .= $this->construct_overlap($start_date, $end_date);
+        
+        return DB::table('bookings')
+                ->select( DB::raw($query))
                 ->count();
-                
-        return $count;
    }
     
    
@@ -102,22 +102,30 @@ class Booking extends Model
         $end_date = $end_date->format('Y-m-d H:i:s');
 
         
-        $raw_qry =" ( ' start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
-                                " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
-                                " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
-                                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )";
-        
-        
-        $count = Booking::where('customer_id', $this->customer->id)
-                        ->where('cleaner_id', "!=", $this->cleaner->id)
-                        ->havingRaw(
-                                $raw_qry                        
-                            )
+        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end FROM bookings " . 
+                " where customer_id = " . $this->customer->id. " and " ; 
+      
+        $query .= $this->construct_overlap($start_date, $end_date);
+
+        return DB::table('bookings')
+                ->select( DB::raw($query))
                 ->count();
-                
-       return $count;
    }
-public function customer()
+   
+   private function construct_overlap($start_date, $end_date)
+   {
+    return  " HAVING (" .
+                
+                " ( 'start' <= ". $end_date ." AND 'end' >= ". $start_date . ")" .
+
+                " OR ('start' >= ". $end_date . " AND 'start' <= " . $start_date . " AND 'end' <= " . $start_date . ")" .
+
+                " OR ('end' <= " . $start_date . " AND 'end' >= " .  $end_date . " AND 'start' <= " . $end_date . ")" .
+
+                " OR ('start' >= " . $end_date ." AND start_date <= "  . $start_date . ") )";
+
+   }
+    public function customer()
     {
         return $this->belongsTo('App\Models\Customer');
     }
@@ -139,6 +147,16 @@ public function customer()
 cannot work together. 
  */     
     
+
+   
+//   Model::where(function ($query) {
+//    $query->where('a', '=', 1)
+//          ->orWhere('b', '=', 1);
+//})->where(function ($query) {
+//    $query->where('c', '=', 1)
+//          ->orWhere('d', '=', 1);
+//});
+
 
 //        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end FROM bookings " . 
 //                " where cleaner_id = " . $this->id. " and " . 
