@@ -8,15 +8,32 @@ use Tests\TestCase;
 
 class BookingTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
-    public function testExample()
+    
+    public function testBookingCreatedSuccessfully()
     {
-        $response = $this->get('/');
+        $user = factory(User::class)->create();
+        $this->actingAs($user, 'api');
+        $start = date("YYYY-MM-DD hh:mm:ss");
+        $bookingData = [
+            "cleaner_id" => 1,
+            "customer_id" => 1,
+            "start" => $start,
+            "duration" => 2,
+        ];
 
-        $response->assertStatus(200);
+        $this->json('POST', 'api/availability', $bookingData, ['Accept' => 'application/json'])
+            ->assertStatus(201)
+            ->assertJson([
+                            "data"=>[   'error'=>0,
+                                        'message'=>null,
+                                        'booking'=>[
+                                                "cleaner_id" => 1,
+                                                "customer_id" => 1,
+                                                "start" => $start,
+                                                "duration" => 2]
+                                        ]
+                                    ]
+                    );
     }
+
 }

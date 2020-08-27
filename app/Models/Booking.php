@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Exceptions\InvalidInputException;
 class Booking extends Model
 {
-
+    //start format: "YYYY-MM-DD hh:mm:ss"
     protected $fillable = [
         'customer_id','cleaner_id', 'start', 'duration','status'
         ];
