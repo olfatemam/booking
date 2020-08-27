@@ -81,7 +81,7 @@ class Booking extends Model
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
         
-        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR ) AS end  from bookings " . 
+        $query = "SELECT count(*) as count_overlap from bookings " . 
                 " where cleaner_id = " . $this->cleaner->id; 
       
         $query .= $this->construct_overlap($start_date, $end_date);
@@ -91,11 +91,7 @@ class Booking extends Model
         Log::info($query);
         $rows = DB::select($query);
         Log::info(print_r($rows, true));
-        return count($rows);
-        
-//        return DB::table('bookings')
-//                ->select( DB::raw($query))
-//                ->get()->count();
+        return $rows[0]->count_overlap;
    }
     
    
@@ -107,7 +103,7 @@ class Booking extends Model
         $start_date = $start_date->format('Y-m-d H:i:s');
         $end_date = $end_date->format('Y-m-d H:i:s');
         
-        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end from bookings" . 
+        $query = "SELECT count(*) as count_overlap from bookings " . 
                 " where customer_id = " . $this->customer->id; 
       
         $query .= $this->construct_overlap($start_date, $end_date);
@@ -117,15 +113,18 @@ class Booking extends Model
         Log::info($query);
         $rows = DB::select($query);
         Log::info(print_r($rows, true));
-        return count($rows);
+        
+        return $rows[0]->count_overlap;
+        
    }
    
    private function construct_overlap($start_date, $end_date)
    {
        //return " and 'end' >'". $start_date ."' and  'start' <'" .$end_date ."'";
 
-//(!('end'<=$start_date || 'start'>=$end_date))
-//(('end'>$start_date && 'start'<$end_date))
+    //(!('end'<=$start_date || 'start'>=$end_date))
+    //(('end'>$start_date && 'start'<$end_date))
+       
        $end = 'DATE_ADD(start, INTERVAL duration HOUR) ';
        return  " and (" .
                 
