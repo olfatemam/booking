@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+
 class BookingResource extends JsonResource
 {
     /**
@@ -16,12 +17,12 @@ class BookingResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'customer' => new Customer($this->customer),
-            'cleaner' => new Cleaner($this->cleaner),
+            'customer' => new CustomerResource($this->customer),
+            'cleaner' => new CleanerResource($this->cleaner),
             
-            //start format "YYYY-MM-DD hh:mm:ss" utc;
+            //start format "Y-m-d H:i:s" utc;
         
-            'start' => date("YYYY-MM-DD hh:mm:ss", $this->start),
+            'start' => $this->start->format('Y-m-d H:i:s'),
             'duration' => $this->duration,
             'status' => $this->status,
             'created_at' => $this->created_at,

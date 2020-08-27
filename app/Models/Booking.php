@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Booking extends Model
 {
-    //start format: "YYYY-MM-DD hh:mm:ss"
+    //start format: "Y-m-d H:i:s"
     protected $fillable = [
         'customer_id','cleaner_id', 'start', 'duration','status'
         ];
@@ -66,7 +66,7 @@ class Booking extends Model
     {
         $this->customer_id  = $customer_id;
         $this->cleaner_id   = $cleaner_id;
-        $this->start        = new DateTime($start);//"YYYY-MM-DD hh:mm:ss" UTC formatted with timezone
+        $this->start        = new DateTime($start);//"Y-m-d H:i:s" UTC formatted with timezone
         $this->duration     = $duration;
         $this->status       = $status;
         
@@ -76,7 +76,7 @@ class Booking extends Model
     
    public function get_cleaner_overlapping_count()
    {
-        $start_date = $this->start;//: "YYYY-MM-DD hh:mm:ss" 
+        $start_date = $this->start;//: "Y-m-d H:i:s" 
         $end_date    = clone $start_date;
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
         $start_date = $start_date->format('Y-m-d H:i:s');
@@ -95,7 +95,7 @@ class Booking extends Model
    
    public function get_customer_overlapping_count()
    {
-        $start_date = $this->start;//: "YYYY-MM-DD hh:mm:ss" 
+        $start_date = $this->start;//: "Y-m-d H:i:s" 
         $end_date    = clone $start_date;
         $end_date->add(new DateInterval('PT'.(int)$this->duration.'H'));
         $start_date = $start_date->format('Y-m-d H:i:s');
