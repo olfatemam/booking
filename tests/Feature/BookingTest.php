@@ -17,7 +17,6 @@ test cases to cover:
  * handling fridays case
  * handling working hours case
  * 
-TBD: 
  *  *  */
 
 class BookingTest extends TestCase
@@ -52,6 +51,7 @@ class BookingTest extends TestCase
         $response->assertStatus(201);
         var_dump($response->decodeResponseJson());
     }
+    
     public function testBookingCleanerOverlap()
     {
         $cleaner = factory(Cleaner::class)->create();
@@ -87,5 +87,101 @@ class BookingTest extends TestCase
         
         var_dump($response->decodeResponseJson());
     }
+    
+    public function testBookingAnotherCleanerCustomerOverlap()
+    {
+        $cleaner1 = factory(Cleaner::class)->create();
+        $cleaner2 = factory(Cleaner::class)->create();
+        $customer = factory(Customer::class)->create();
+        
 
+        $d=strtotime("next Monday 10:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData1 = [
+                        "cleaner_id" => $cleaner1->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData1);
+        $response->assertStatus(201);
+
+        
+        $d=strtotime("next Monday 11:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData2 = [
+                        "cleaner_id" => $cleaner2->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData2);
+        
+        $response->assertStatus(412);
+        
+        
+        var_dump($response->decodeResponseJson());
+    }
+
+    public function testBookingOnFriday()
+    {
+        $cleaner = factory(Cleaner::class)->create();
+        $customer = factory(Customer::class)->create();
+
+        $d=strtotime("next Friday 10:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData = [
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData);
+        $response->assertStatus(412);
+        var_dump($response->decodeResponseJson());
+    }
+    
+
+    public function testBookingBeforeWorkingHours()
+    {
+        $cleaner = factory(Cleaner::class)->create();
+        $customer = factory(Customer::class)->create();
+
+        $d=strtotime("next Monday 07:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData = [
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData);
+        $response->assertStatus(412);
+        var_dump($response->decodeResponseJson());
+    }
+    
+
+    public function testBookingAfterWorkingHours()
+    {
+        $cleaner = factory(Cleaner::class)->create();
+        $customer = factory(Customer::class)->create();
+
+        $d=strtotime("next Monday 23:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData = [
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData);
+        $response->assertStatus(412);
+        var_dump($response->decodeResponseJson());
+    }
+    
 }
