@@ -16,6 +16,7 @@ test cases to cover:
  * 3. handle other cleaner overlap with the cleaner during the required time with the same customer
  * handling fridays case
  * handling working hours case
+ * update successfully
  * 
  *  *  */
 
@@ -181,6 +182,43 @@ class BookingTest extends TestCase
 
         $response  = $this->postJson('/api/bookings', $bookingData);
         $response->assertStatus(412);
+        var_dump($response->decodeResponseJson());
+    }
+
+    public function testBookinUpdatedSuccessfully()
+    {
+        $cleaner = factory(Cleaner::class)->create();
+        $customer = factory(Customer::class)->create();
+
+        $d=strtotime("next Monday 10:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData = [
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData);
+        $response->assertStatus(201);
+        $output = (array)$response->decodeResponseJson();
+        
+        $booking_id = $output["data"]["booking"]["id"];
+        
+                
+        $d=strtotime("next Monday 16:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData = [
+                        "booking_id" => $booking_id,
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings/', $bookingData);
+        $response->assertStatus(201);
+        
         var_dump($response->decodeResponseJson());
     }
     

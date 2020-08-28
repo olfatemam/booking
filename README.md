@@ -14,10 +14,11 @@ from project folder:
 
 finished:
 creation of booking test cases
+booking successfully update test case
 availability list test case
 
 
 TBD:
-test cases for booking update
+test cases for booking failed update
 test cases for models: cleaner, customer 
 code documentation
