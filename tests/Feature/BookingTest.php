@@ -13,14 +13,16 @@ class BookingTest extends TestCase
         public function testBasicTest()
     {
         $response = $this->get('/api/availability');
+        
         Log::info(print_r((array)$response->decodeResponseJson(), true));
+        
         var_dump($response->decodeResponseJson());
         
         $response->assertStatus(200);
         
     }
     
-    public function stestBookingCreatedSuccessfully()
+    public function testBookingCreatedSuccessfully()
     {
         $start = date('Y-m-d H:i:s');
         $bookingData = [
@@ -30,7 +32,7 @@ class BookingTest extends TestCase
             "duration" => 4,
         ];
 
-        $response  = $this->json('Post', '/bookings', $bookingData, ['Accept' => 'application/json']);
+        $response  = $this->postJson('/api/bookings', $bookingData);
         //$response ->dump();
         $response ->assertStatus(201);
         $response ->assertJson([
