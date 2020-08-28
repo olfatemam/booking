@@ -19,3 +19,4 @@ availability list test case
 TBD:
 test cases for booking update
 test cases for models: cleaner, customer 
+code documentation
