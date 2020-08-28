@@ -7,14 +7,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 use App\Exceptions\InvalidInputException;
 
-//use Resources\CleanerResource;
-//use Resources\CleanerCollection;
+use App\Http\Resources\CleanerResource;
+use App\Http\Resources\CleanerCollection;
 
 use App\Http\Resources\BookingResource;
 use App\Http\Resources\BookingCollection;
 
-//use Resources\CustomerResource;
-//use Resources\CustomerCollection;
+use Resources\CustomerResource;
+use Resources\CustomerCollection;
 
 use App\Models\Cleaner;
 //use App\Models\Customer;
@@ -42,13 +42,21 @@ class BookingController extends Controller
         {
             $available_array=array();
             
-            $free_cleaners = Cleaner::whereNotIn('id', function($query){$query->select('cleaner_id')->from('bookings')->whereDate($request->date);})->get(); 
+            $free_cleaners = Cleaner::whereNotIn('id', 
+                                                    function($query) use($request) {
+                                                        $query->select('cleaner_id')
+                                                            ->from('bookings')
+                                                            ->whereDate('start', $request->date);
+                
+                                            }
+                            )->get(); 
             
-            $busy_that_day_cleaners = Cleaner::whereIn('id', function($query){$query->select('cleaner_id')->from('bookings')->whereDate($request->date);}); 
+            $busy_that_day_cleaners = Cleaner::whereIn('id', function($query) use($request){
+                $query->select('cleaner_id')->from('bookings')->whereDate('start', $request->date);}); 
             
             foreach($free_cleaners as $cleaner)
             {
-                $available_array[]=['cleaner'=>new Resources\CleanerResource($cleaner), 'bookings'=>[]];
+                $available_array[]=['cleaner'=>new CleanerResource($cleaner), 'bookings'=>[]];
             }
             
             foreach($busy_that_day_cleaners as $cleaner)
@@ -61,7 +69,7 @@ class BookingController extends Controller
                 {
                     $bookings[]=['start'=>$booking->start, 'duration'=>$booking->duration];
                 }
-                $available_array[]=['cleaner'=>new Resources\CleanerResource($cleaner), 'occupied_array'=>$bookings];
+                $available_array[]=['cleaner'=>new CleanerResource($cleaner), 'occupied_array'=>$bookings];
             }
             
             return response()->json(['data' => ["available_array"=>$available_array, "error"=>0, "message"=>"success"]], Response::HTTP_CREATED);

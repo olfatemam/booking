@@ -168,6 +168,15 @@ cannot work together.
 //    $query->where('c', '=', 1)
 //          ->orWhere('d', '=', 1);
 //});
+//$query->where(function ($query1) {
+//
+//$query1->where(function ($query2) {
+//    $query2->where('', '')
+//        ->where('', '>=', );
+//})->orWhere(function($query3) {
+//    $query3->where('', '')
+//        ->where('', '>=', );	
+//})
 
 
 //        $query = "SELECT start, DATE_ADD(start, INTERVAL duration HOUR) AS end FROM bookings " . 
