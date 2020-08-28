@@ -52,5 +52,40 @@ class BookingTest extends TestCase
         $response->assertStatus(201);
         var_dump($response->decodeResponseJson());
     }
+    public function testBookingCleanerOverlap()
+    {
+        $cleaner = factory(Cleaner::class)->create();
+        $customer1 = factory(Customer::class)->create();
+        $customer2 = factory(Customer::class)->create();
+
+        $d=strtotime("next Monday 10:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData1 = [
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer1->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData1);
+        $response->assertStatus(201);
+
+        
+        $d=strtotime("next Monday 11:00");
+        $start= date("Y-m-d H:i:s", $d);
+        $bookingData2 = [
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer2->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
+
+        $response  = $this->postJson('/api/bookings', $bookingData2);
+        
+        $response->assertStatus(412);
+        
+        
+        var_dump($response->decodeResponseJson());
+    }
 
 }
