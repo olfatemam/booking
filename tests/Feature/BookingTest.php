@@ -13,10 +13,10 @@ class BookingTest extends TestCase
         public function testBasicTest()
     {
         $response = $this->get('/api/availability');
-        
+        Log::info(print_r((array)$response->decodeResponseJson(), true));
         var_dump($response->decodeResponseJson());
         
-        $response->assertStatus(201);
+        $response->assertStatus(200);
         
     }
     

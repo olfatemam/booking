@@ -72,7 +72,7 @@ class BookingController extends Controller
                 $available_array[]=['cleaner'=>new CleanerResource($cleaner), 'occupied_array'=>$bookings];
             }
             
-            return response()->json(['data' => ["available_array"=>$available_array, "error"=>0, "message"=>"success"]], Response::HTTP_CREATED);
+            return response()->json(['data' => ["available_array"=>$available_array, "error"=>0, "message"=>"success"]], Response::HTTP_OK);
         }
         catch(InvalidInputException $e)
         {
