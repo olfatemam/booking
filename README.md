@@ -6,9 +6,9 @@ clone https://github.com/olfatemam/booking.git
 create mysql and adjust the .env with db name and credentials
 
 from project folder:
-
-1. run php artisan migrate 
-2. run php artisan db:seed
+1. run composer update
+2. run php artisan migrate 
+3. run php artisan db:seed
 
 
 finished:
