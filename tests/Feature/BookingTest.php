@@ -6,11 +6,23 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Log;
+use \App\Models\Cleaner;
+use App\Models\Customer;
+
+/*
+test cases to cover:
+ * 1. successfully create booking 
+ * 2. handling cleaner overlap
+ * 3. handle other cleaner overlap with the cleaner during the required time with the same customer
+ * handling fridays case
+ * handling working hours case
+ * 
+TBD: 
+ *  *  */
 
 class BookingTest extends TestCase
 {
-    
-        public function testBasicTest()
+    public function testBasicTest()
     {
         $response = $this->get('/api/availability');
         
@@ -24,28 +36,21 @@ class BookingTest extends TestCase
     
     public function testBookingCreatedSuccessfully()
     {
-        $start = date('Y-m-d H:i:s');
+        $cleaner = factory(Cleaner::class)->create();
+        $customer = factory(Customer::class)->create();
+
+        $d=strtotime("next Monday 10:00");
+        $start= date("Y-m-d H:i:s", $d);
         $bookingData = [
-            "cleaner_id" => 2,
-            "customer_id" => 2,
-            "start" => $start,
-            "duration" => 4,
-        ];
+                        "cleaner_id" => $cleaner->id,
+                        "customer_id" => $customer->id,
+                        "start" => $start,
+                        "duration" => 4,
+                        ];
 
         $response  = $this->postJson('/api/bookings', $bookingData);
-        //$response ->dump();
-        $response ->assertStatus(201);
-        $response ->assertJson([
-                            "data"=>[   'error'=>0,
-                                        'message'=>null,
-                                        'booking'=>[
-                                                "cleaner_id" => 2,
-                                                "customer_id" => 2,
-                                                "start" => $start,
-                                                "duration" => 2]
-                                        ]
-                                    ]
-                    );
+        $response->assertStatus(201);
+        var_dump($response->decodeResponseJson());
     }
 
 }
