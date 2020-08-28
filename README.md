@@ -10,16 +10,12 @@ from project folder:
 1. run php artisan migrate 
 2. run php artisan db:seed
 
-using postman sent the post api: http://localhost/booking/public/api/bookings with the following parameters in the body:
-cleaner_id: chose from 1 to 5 to use one of the seeded values
-customer_id: chose from 1 to 5 to use one of the seeded values
-start: datetime in the format 'Y-m-d H:i:s'
-duration: 2 or 4
 
+finished:
+creation of booking test cases
+availability list test case
 
-so far I only testing the creation of the first booking, and I need extra time for properly test the sql query for the booking operation.
 
 TBD:
-test booking all cases 
-test updating all cases
-test cases: cleaner, customer 
+test cases for booking update
+test cases for models: cleaner, customer 
