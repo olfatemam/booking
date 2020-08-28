@@ -10,6 +10,7 @@ from project folder:
 2. run php artisan migrate 
 3. run php artisan db:seed
 
+4. run ./vendor/bin/phpunit
 
 finished:
 creation of booking test cases
